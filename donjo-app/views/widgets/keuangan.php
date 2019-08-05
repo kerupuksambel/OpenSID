@@ -22,7 +22,7 @@
   }
 
   #widget-keuangan-container h3{
-    font-size: 20px;
+    font-size: 16px;
     /*font-weight: bold;*/
     padding-top: 5px;
   }
@@ -33,12 +33,21 @@
   }
 
   #grafik-container{
-    /*background-color: #999*/ 
+    /*background-color: #999 */
+    overflow-y: auto;
+    overflow-x: auto;
+    max-height: 500px;
   }
 
-  .graph{
+  .graph-sub{
     text-align: left;
+    padding-top: 5px;
+    padding-bottom: 5px;
+    white-space: nowrap;
     /*height: 100px;*/
+    /*overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;*/
   }
 
   .keuangan-selector{
@@ -49,13 +58,14 @@
     display: block;
     height: 3px;
     margin-bottom: 4px;
-    width: 22px;
+    width: 12px;
     background: #333;
     border-radius: 1px;
   }
 
   .dropdown-toggle{
     border: none;
+    background: transparent;
   }
 
   .keuangan-selector{
@@ -69,6 +79,23 @@
   </div>
   <div class="box-body">
     <div id="widget-keuangan-container">
+      <div class="dropdown" style="float: left;">
+        <button class="dropdown-toggle btn btn-default" href="#" role="button" id="dropdownMenuLink" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+          <span class="sr-only">Toogle navigation</span>
+          <span class="icon-bar"></span>
+          <span class="icon-bar"></span>
+          <span class="icon-bar"></span>
+        </button>
+        <ul class="dropdown-menu dropdown-menu-left">
+          <?php 
+            foreach ($widget_keuangan['tahun'] as $key):
+          ?>
+          <li><a class="dropdown-item" onclick="gantiTahun('<?= $key ?>')"><?= $key ?></a></li>
+          <?php 
+            endforeach;
+          ?>
+        </ul>
+      </div>
       <div class="dropdown" style="float: right;">
         <button class="dropdown-toggle btn btn-default" href="#" role="button" id="dropdownMenuLink" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
           <span class="sr-only">Toogle navigation</span>
@@ -82,22 +109,10 @@
           <li><a class="dropdown-item" onclick="gantiTipe('belanja')">Realisasi Belanja Desa</a></li>
         </ul>
       </div>
+
       <div id="grafik-judul">
         <h3></h3>
-        <!-- <p id="grafik-tahun"></p> -->
-      <div class="col-md-12 keuangan-selector" style="padding-bottom: 20px; padding=top: 5px;">
-        <select class="col-md-12 form-control" id="keuangan-selector">
-          <?php 
-            foreach ($widget_keuangan['tahun'] as $key):
-          ?>
-          <option value="<?= $key ?>">Tahun <?= $key ?></option>
-          <?php 
-            endforeach;
-          ?>
-        </select>
-<!--         <input type="hidden" value="" id="type"/>
-        <input type="hidden" value="2016" id="tahun"/> -->
-      </div>
+        <p id="grafik-tahun"></p>
       </div>
       <div id="grafik-container">
       </div>
@@ -133,13 +148,18 @@
     $("#widget-keuangan-container h3").text(judulGrafik);
     //Eksekusi chart dengan for loop
     chartData.forEach(function(subData, idx){
+      var persentase = parseInt(subData['realisasi']) / (parseInt(subData['realisasi']) + parseInt(subData['anggaran'])) * 100;
+      if(isNaN(persentase)){
+        persentase = 0;
+      }
+      persentase = persentase.toFixed(2);
       $("#grafik-container").append(
-          "<div class='graph-sub'>"+ subData['nama'] + "</div><div id='graph-"+ idx +"' class='graph'></div>");
+          "<div class='graph-sub' id='graph-sub-"+ idx +"'>"+ subData['nama'] + " (Realisasi : "+ persentase + "%)</div><div id='graph-"+ idx +"' class='graph'></div>");
       Highcharts.chart("graph-"+ idx, {
           chart: {
             type: 'bar',
             margin: 0,
-            height: 50,
+            height: 30,
             backgroundColor: "rgba(0,0,0,0)",
             spacingBottom: 0,
           },
@@ -168,6 +188,11 @@
               dataLabels: {
                 enabled: true
               }
+            },
+
+            series: {
+              pointPadding: 0,
+              groupPadding: 0,
             }
           },
           
@@ -198,6 +223,9 @@
           }]
       });
     });
+    // if($("#graph-sub-"+ idx).scrollWidth() > $("#graifk-sub"+ idx).innerWidth()){
+    //   $("#graph-sub-"+ idx).css("fontSize", "8px");
+    // }
     $("p#grafik-tahun").text("Tahun " + year);
   }
 
